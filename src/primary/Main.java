@@ -30,10 +30,12 @@ import java.util.Scanner;
 // TODO: Should keyMappings be used if the inherit key delay would be desired? Change to HashSet?
 public class Main extends Application
 {
+    // Constants
     public static final String DEFAULT_WINDOW_TITLE = "Editor";
     public static final int DEFAULT_WINDOW_WIDTH = 1080, DEFAULT_WINDOW_HEIGHT = 720;
     public static final double DEFAULT_TEXT_WRAPPING_WIDTH = 800;
 
+    // Instance variables
     private HashMap<KeyCode, Boolean> keyMappings;
 
     private Stage primaryStage;
@@ -177,8 +179,6 @@ public class Main extends Application
         System.err.println("NUMBER OF KEYS: " + keyMappings.size());
     }
 
-
-
     private class EditorKeyPressedListener<T extends KeyEvent> implements EventHandler<T>
     {
         public EditorKeyPressedListener()
@@ -191,7 +191,17 @@ public class Main extends Application
         {
             if(keyMappings.containsKey(event.getCode()))
             {
-                primaryStringBuilder.append(event.getText());
+                if(event.getCode() == KeyCode.BACK_SPACE)
+                {
+                    if(primaryStringBuilder.length() > 0)
+                    {
+                        primaryStringBuilder.setLength(primaryStringBuilder.length() - 1);
+                    }
+                }
+                else
+                {
+                    primaryStringBuilder.append(event.getText());
+                }
 
                 primaryText.setText(primaryStringBuilder.toString());
 
