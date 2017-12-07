@@ -3,22 +3,35 @@ package primary;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.event.EventHandler;
+import javafx.scene.Cursor;
+import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
+import javafx.scene.paint.Paint;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import setup.ValidCharacterGenerator;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Scanner;
 
 /**
  * Created by Andrew Michel on 12/6/2017.
  */
-// TODO: Should keyMappings be used if the inherit key delay would be desired?
+// TODO: Should keyMappings be used if the inherit key delay would be desired? Change to HashSet?
 public class Main extends Application
 {
+    public static final String DEFAULT_WINDOW_TITLE = "Editor";
     public static final int DEFAULT_WINDOW_WIDTH = 1080, DEFAULT_WINDOW_HEIGHT = 720;
 
     private HashMap<KeyCode, Boolean> keyMappings;
@@ -27,8 +40,17 @@ public class Main extends Application
     private Pane primaryPane;
     private Scene primaryScene;
 
+    // TODO: use StringBuffer instead?
+    private StringBuilder primaryStringBuilder;
+    private Text primaryText;
+
     // Enforce generics on declaration and initialization?
     private EventHandler keyPressedListener, keyReleasedListener;
+
+    public static void main(String[] args)
+    {
+        launch(args);
+    }
 
     @Override
     public void start(Stage primaryStage) throws Exception
@@ -40,34 +62,118 @@ public class Main extends Application
         this.primaryStage = primaryStage;
         Platform.setImplicitExit(true);
 
-        primaryPane = new Pane();
-        primaryScene = new Scene(primaryPane, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT);
+        // Initializes instance variables
+        initializeFields();
 
-        primaryStage.setTitle("Editor");
+        primaryStage.setTitle(DEFAULT_WINDOW_TITLE);
         primaryStage.setScene(primaryScene);
 
         primaryStage.isFocused();
-
-        keyPressedListener = new EditorKeyPressedListener();
-        keyReleasedListener = new EditorKeyReleasedListener();
 
         // Add to primaryPane or deeper pane?
         primaryPane.setOnKeyPressed(keyPressedListener);
         primaryPane.setOnKeyReleased(keyReleasedListener);
         primaryPane.requestFocus();
 
+        //primaryPane.getChildren().add(primaryText);
+
+        Pane textPane = new Pane();
+        textPane.getChildren().add(primaryText);
+        primaryPane.getChildren().add(textPane);
+
         primaryStage.show();
     }
 
-    private boolean populateKeyMappings(File path)
+    private boolean initializeFields()
     {
+        primaryPane = new Pane();
+
+        primaryScene = new Scene(primaryPane, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT);
+
+        populateKeyMappings();
+
+        primaryStringBuilder = new StringBuilder();
+        primaryText = new Text(100, 100, "");
+
+        // primaryText.setCursor(...);
+        //primaryText.setFont(Font.font("Verdana", FontWeight.BOLD, 70));
+
+        keyPressedListener = new EditorKeyPressedListener();
+        keyReleasedListener = new EditorKeyReleasedListener();
+
         return true;
     }
 
-    private boolean populateKeyMappings(String path)
+    private boolean populateKeyMappings()
     {
-        return populateKeyMappings(new File(path));
+        KeyCode[] keyCodes = KeyCode.values();
+
+        keyMappings = new HashMap<>(keyCodes.length);
+
+        for(int i = 0; i < keyCodes.length; i++)
+        {
+            keyMappings.put(keyCodes[i], false);
+        }
+
+        //displayKeyMappings();
+
+        return true;
     }
+
+//    private boolean populateKeyMappings(File path)
+//    {
+//        Scanner fileReader = null;
+//
+//        keyMappings = new HashMap<>();
+//
+//        KeyCode current = null;
+//
+//        try
+//        {
+//            fileReader = new Scanner(new FileInputStream(path));
+//
+//            while(fileReader.hasNext())
+//            {
+//                current = KeyCode.getKeyCode(fileReader.next());
+//
+//                System.out.println(current + " " + fileReader.next());
+//
+//                if(current != null)
+//                {
+//                    keyMappings.put(current, false);
+//                }
+//
+//                //fileReader.next();
+//            }
+//
+//            fileReader.close();
+//        }
+//        catch(FileNotFoundException e)
+//        {
+//            e.printStackTrace();
+//        }
+//
+//        displayKeyMappings();
+//
+//        return true;
+//    }
+//
+//    private boolean populateKeyMappings(String path)
+//    {
+//        return populateKeyMappings(new File(path));
+//    }
+
+    private void displayKeyMappings()
+    {
+        for(Map.Entry<KeyCode, Boolean> entry : keyMappings.entrySet())
+        {
+            System.err.println(entry.getKey().getName() + " " + entry.getValue());
+        }
+
+        System.err.println("NUMBER OF KEYS: " + keyMappings.size());
+    }
+
+
 
     private class EditorKeyPressedListener<T extends KeyEvent> implements EventHandler<T>
     {
@@ -76,10 +182,22 @@ public class Main extends Application
             super();
         }
 
+        // TODO: Use primaryStringBuilder instead
+
         @Override
         public void handle(T event)
         {
-            System.err.println(event);
+            if(keyMappings.containsKey(event.getCode()))
+            {
+                primaryText.setText(primaryText.getText() + event.getText());
+
+                if(primaryText.getText().length() % 80 == 0 && primaryText.getText().length() != 0)
+                {
+                    primaryText.setText(primaryText.getText() + "\n");
+                }
+
+                System.err.println(event);
+            }
         }
     }
 
@@ -93,7 +211,10 @@ public class Main extends Application
         @Override
         public void handle(T event)
         {
-            System.err.println(event);
+            if(keyMappings.containsKey(event.getCode()))
+            {
+                System.err.println(event);
+            }
         }
     }
 
