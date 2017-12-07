@@ -6,6 +6,7 @@ import javafx.event.EventHandler;
 import javafx.scene.Cursor;
 import javafx.scene.Group;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
@@ -15,8 +16,6 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import setup.ValidCharacterGenerator;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -33,6 +32,7 @@ public class Main extends Application
 {
     public static final String DEFAULT_WINDOW_TITLE = "Editor";
     public static final int DEFAULT_WINDOW_WIDTH = 1080, DEFAULT_WINDOW_HEIGHT = 720;
+    public static final double DEFAULT_TEXT_WRAPPING_WIDTH = 800;
 
     private HashMap<KeyCode, Boolean> keyMappings;
 
@@ -60,6 +60,9 @@ public class Main extends Application
         primaryStage.setResizable(true);
 
         this.primaryStage = primaryStage;
+
+        primaryStage.getIcons().add(new Image("file:EditorIcon.png"));
+
         Platform.setImplicitExit(true);
 
         // Initializes instance variables
@@ -94,6 +97,7 @@ public class Main extends Application
 
         primaryStringBuilder = new StringBuilder();
         primaryText = new Text(100, 100, "");
+        primaryText.setWrappingWidth(DEFAULT_TEXT_WRAPPING_WIDTH);
 
         // primaryText.setCursor(...);
         //primaryText.setFont(Font.font("Verdana", FontWeight.BOLD, 70));
@@ -182,21 +186,18 @@ public class Main extends Application
             super();
         }
 
-        // TODO: Use primaryStringBuilder instead
-
         @Override
         public void handle(T event)
         {
             if(keyMappings.containsKey(event.getCode()))
             {
-                primaryText.setText(primaryText.getText() + event.getText());
+                primaryStringBuilder.append(event.getText());
 
-                if(primaryText.getText().length() % 80 == 0 && primaryText.getText().length() != 0)
-                {
-                    primaryText.setText(primaryText.getText() + "\n");
-                }
+                primaryText.setText(primaryStringBuilder.toString());
 
                 System.err.println(event);
+                System.err.println(primaryStringBuilder.length());
+                System.err.println(primaryText.getText().length());
             }
         }
     }
