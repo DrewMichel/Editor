@@ -1,4 +1,4 @@
-package setup;
+package deprecated;
 
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 /**
  * Created by Andrew Michel on 12/6/2017.
  */
+/* Deprecated setup class
 public class ValidCharacterGenerator
 {
     public static final String VALID_CHARACTER_FILE_NAME = "Valid_Characters.txt";
@@ -34,3 +35,4 @@ public class ValidCharacterGenerator
         }
     }
 }
+*/

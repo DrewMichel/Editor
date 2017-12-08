@@ -1,0 +1,43 @@
+// Deprecated method in Main
+//    private boolean populateKeyMappings(File path)
+//    {
+//        Scanner fileReader = null;
+//
+//        keyMappings = new HashMap<>();
+//
+//        KeyCode current = null;
+//
+//        try
+//        {
+//            fileReader = new Scanner(new FileInputStream(path));
+//
+//            while(fileReader.hasNext())
+//            {
+//                current = KeyCode.getKeyCode(fileReader.next());
+//
+//                System.out.println(current + " " + fileReader.next());
+//
+//                if(current != null)
+//                {
+//                    keyMappings.put(current, false);
+//                }
+//
+//                //fileReader.next();
+//            }
+//
+//            fileReader.close();
+//        }
+//        catch(FileNotFoundException e)
+//        {
+//            e.printStackTrace();
+//        }
+//
+//        displayKeyMappings();
+//
+//        return true;
+//    }
+//
+//    private boolean populateKeyMappings(String path)
+//    {
+//        return populateKeyMappings(new File(path));
+//    }

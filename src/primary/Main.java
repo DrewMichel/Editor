@@ -2,17 +2,19 @@ package primary;
 
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.binding.BooleanBinding;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.adapter.JavaBeanBooleanProperty;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.text.Text;
-import javafx.scene.web.HTMLEditor;
+import javafx.scene.layout.Pane;
 import javafx.stage.FileChooser;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
@@ -51,18 +53,19 @@ public class Main extends Application
 
     private MenuItem helpMenuItem;
 
+    private CheckMenuItem wrapTextItem;
+    private CheckMenuItem limitWidthItem;
+    private CheckMenuItem fullScreenItem;
+
     // TODO: use StringBuffer instead?
     private StringBuilder primaryStringBuilder;
-    private Text primaryText;
     private TextArea primaryTextArea;
-    private HTMLEditor primaryHTMLEditor;
 
     private File fileSavePath;
     private boolean changeOccured;
 
     // Enforce generics on declaration and initialization?
-    private EventHandler keyPressedListener, keyReleasedListener;
-    private EventHandler fileActionListener;
+    private EventHandler fileActionListener, optionsActionListener;
 
     public static void main(String[] args)
     {
@@ -93,11 +96,7 @@ public class Main extends Application
         // Add to primaryPane or deeper pane?
         //primaryPane.setOnKeyPressed(keyPressedListener);
         //primaryPane.setOnKeyReleased(keyReleasedListener);
-        primaryPane.requestFocus();
-
-
-
-
+        //primaryPane.requestFocus();
 
         primaryStage.show();
     }
@@ -109,7 +108,11 @@ public class Main extends Application
 
         primaryPane = new BorderPane();
 
-        primaryScene = new Scene(primaryPane, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT);
+        primaryStage.setMaximized(true);
+
+        //primaryScene = new Scene(primaryPane, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT);
+        //primaryScene = new Scene(primaryPane, Screen.getPrimary().getBounds().getWidth(), Screen.getPrimary().getBounds().getHeight() - 65);
+        primaryScene = new Scene(primaryPane, DEFAULT_WINDOW_WIDTH, Screen.getPrimary().getBounds().getHeight() - 65);
 
         primaryMenuBar = new MenuBar();
         primaryMenuBar.prefWidthProperty().bind(primaryStage.widthProperty());
@@ -131,6 +134,21 @@ public class Main extends Application
         saveMenuItem.setOnAction(fileActionListener);
         saveAsMenuItem.setOnAction(fileActionListener);
 
+        //optionsActionListener = new OptionsActionListener();
+
+        wrapTextItem = new CheckMenuItem("Wrap Text");
+        limitWidthItem = new CheckMenuItem("Limit Width");
+        fullScreenItem = new CheckMenuItem("Full Screen");
+
+        wrapTextItem.setSelected(true);
+        limitWidthItem.setSelected(true);
+        fullScreenItem.setSelected(false);
+
+
+
+        //wrapTextItem.setOnAction(optionsActionListener);
+        //limitWidthItem.setOnAction(optionsActionListener);
+
         helpMenuItem = new CheckMenuItem("404");
         helpMenuItem.setDisable(true);
 
@@ -138,10 +156,30 @@ public class Main extends Application
 
         fileMenu.getItems().addAll(newMenuItem, openMenuItem, saveMenuItem, saveAsMenuItem);
 
+        optionsMenu.getItems().addAll(wrapTextItem, limitWidthItem, fullScreenItem);
+
         helpMenu.getItems().addAll(helpMenuItem);
 
         primaryMenuBar.getMenus().addAll(fileMenu, optionsMenu, helpMenu);
-        primaryPane.setTop(primaryMenuBar);
+        //primaryPane.setTop(primaryMenuBar);
+
+        MenuBar menu = new MenuBar();
+
+        //menu.setPadding(new Insets(0,0,20,0));
+        menu.prefWidthProperty().bind(primaryStage.widthProperty());
+        menu.setLayoutY(25);
+
+        Menu m = new Menu("TESTER");
+
+        menu.getMenus().addAll(m);
+
+        //primaryPane.setTop(menu);
+
+        Pane topPane = new Pane();
+
+        topPane.getChildren().addAll(primaryMenuBar, menu);
+
+        primaryPane.setTop(topPane);
 
         populateKeyMappings();
 
@@ -156,12 +194,51 @@ public class Main extends Application
         //htmlEditor.setHtmlText("TEXT");
         //primaryPane.setCenter(htmlEditor);
 
-        //primaryTextArea = new TextArea();
+        primaryTextArea = new TextArea();
 
-        primaryHTMLEditor = new HTMLEditor();
+        //primaryTextArea.setMaxHeight(500);
+        //primaryTextArea.setLayoutY(-200);
 
-        primaryPane.setCenter(primaryHTMLEditor);
+        //primaryTextArea.setDisable(true);
+        primaryTextArea.setWrapText(true);
 
+
+        //primaryTextArea.setPadding(new Insets(-20,0,0,0));
+
+
+        primaryTextArea.setMaxWidth(800);
+
+        //primaryHTMLEditor = new HTMLEditor();
+
+        Pane centerPane = new Pane();
+
+       // centerPane.getChildren().addAll( primaryTextArea);
+
+        //primaryPane.setCenter(primaryTextArea);
+        primaryPane.setCenter(primaryTextArea);
+
+        primaryTextArea.requestFocus();
+
+        //MenuBar footer = new MenuBar();
+        //footer.prefWidthProperty().bind(primaryStage.widthProperty());
+
+        //footer.getMenus().add(new Menu("FOOTER"));
+
+        Pane footerPane = new Pane();
+        Label footerLabel = new Label();
+
+
+        footerPane.getChildren().add(footerLabel);
+
+        footerPane.setStyle("-fx-background: #665A57");
+
+        footerPane.prefWidthProperty().bind(primaryStage.widthProperty());
+
+        footerLabel.setStyle("-fx-background: #665A57");
+
+        primaryPane.setStyle("-fx-background: #363535");
+
+        primaryPane.setBottom(footerPane);
 
         //primaryPane.getChildren().add(primaryText);
 
@@ -190,49 +267,6 @@ public class Main extends Application
         return true;
     }
 
-//    private boolean populateKeyMappings(File path)
-//    {
-//        Scanner fileReader = null;
-//
-//        keyMappings = new HashMap<>();
-//
-//        KeyCode current = null;
-//
-//        try
-//        {
-//            fileReader = new Scanner(new FileInputStream(path));
-//
-//            while(fileReader.hasNext())
-//            {
-//                current = KeyCode.getKeyCode(fileReader.next());
-//
-//                System.out.println(current + " " + fileReader.next());
-//
-//                if(current != null)
-//                {
-//                    keyMappings.put(current, false);
-//                }
-//
-//                //fileReader.next();
-//            }
-//
-//            fileReader.close();
-//        }
-//        catch(FileNotFoundException e)
-//        {
-//            e.printStackTrace();
-//        }
-//
-//        displayKeyMappings();
-//
-//        return true;
-//    }
-//
-//    private boolean populateKeyMappings(String path)
-//    {
-//        return populateKeyMappings(new File(path));
-//    }
-
     private void displayKeyMappings()
     {
         for(Map.Entry<KeyCode, Boolean> entry : keyMappings.entrySet())
@@ -242,6 +276,27 @@ public class Main extends Application
 
         System.err.println("NUMBER OF KEYS: " + keyMappings.size());
     }
+
+
+    private class OptionsActionListener implements EventHandler<ActionEvent>
+    {
+        @Override
+        public void handle(ActionEvent event)
+        {
+            // TODO: Change to CheckMenuItem?
+            String actionCommand = ((MenuItem)event.getSource()).getText();
+            // ((CheckMenuItem) event.getSource()).isSelected().isEqualTo(); // equals(true);
+            // ((CheckMenuItem) event.getSource()).selectedProperty().bindBidirectional(primaryTextArea.wrapTextProperty()); //TODO: Move to initialize method DOUBLE CHECK
+
+            System.err.println(actionCommand);
+
+            if(actionCommand.equals("Wrap Text"))
+            {
+
+            }
+        }
+    }
+
 
     private class FileActionListener implements EventHandler<ActionEvent>
     {
@@ -277,56 +332,6 @@ public class Main extends Application
         }
     }
 
-    private class EditorKeyPressedListener implements EventHandler<KeyEvent>
-    {
-        public EditorKeyPressedListener()
-        {
-            super();
-        }
-
-        @Override
-        public void handle(KeyEvent event)
-        {
-            if(keyMappings.containsKey(event.getCode()))
-            {
-                if(event.getCode() == KeyCode.BACK_SPACE)
-                {
-                    if(primaryStringBuilder.length() > 0)
-                    {
-                        primaryStringBuilder.setLength(primaryStringBuilder.length() - 1);
-                    }
-                }
-                else
-                {
-                    primaryStringBuilder.append(event.getText());
-                }
-
-                primaryText.setText(primaryStringBuilder.toString());
-
-                System.err.println(event);
-                System.err.println(primaryStringBuilder.length());
-                System.err.println(primaryText.getText().length());
-            }
-        }
-    }
-
-    private class EditorKeyReleasedListener<T extends KeyEvent> implements EventHandler<T>
-    {
-        public EditorKeyReleasedListener()
-        {
-            super();
-        }
-
-        @Override
-        public void handle(T event)
-        {
-            if(keyMappings.containsKey(event.getCode()))
-            {
-                System.err.println(event);
-            }
-        }
-    }
-
     private File selectSaveAsFile()
     {
         File selected = null;
@@ -357,7 +362,7 @@ public class Main extends Application
             try
             {
                 // TODO: Change to Text area
-                textReader = new BufferedReader(new StringReader(primaryHTMLEditor.getHtmlText()));
+                textReader = new BufferedReader(new StringReader(primaryTextArea.getText()));
 
                 saveFileWriter = new PrintWriter(path);
 
@@ -411,7 +416,7 @@ public class Main extends Application
     {
         BufferedReader openFileReader = null;
 
-        final String newLine = "<br>";
+        final String newLine = "\n";
 
         String line = null;
 
@@ -423,9 +428,11 @@ public class Main extends Application
             {
                 openFileReader = new BufferedReader(new FileReader(path));
 
+                primaryTextArea.clear();
+
                 while((line = openFileReader.readLine()) != null)
                 {
-                    sb.append(line + newLine);
+                    primaryTextArea.appendText(line + newLine);
                 }
 
                 openFileReader.close();
@@ -434,7 +441,7 @@ public class Main extends Application
 
                 // TODO: Replace with String
                 //primaryTextArea.setText(sb.toString());
-                primaryHTMLEditor.setHtmlText(sb.toString());
+                //primaryTextArea.setText(sb.toString());
 
                 return true;
             }
