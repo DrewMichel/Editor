@@ -4,7 +4,11 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.Property;
+import javafx.beans.property.ReadOnlyBooleanPropertyBase;
 import javafx.beans.property.adapter.JavaBeanBooleanProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
@@ -50,12 +54,13 @@ public class Main extends Application
     private MenuItem openMenuItem;
     private MenuItem saveMenuItem;
     private MenuItem saveAsMenuItem;
+    private MenuItem printMenuItem;
 
     private MenuItem helpMenuItem;
 
     private CheckMenuItem wrapTextItem;
     private CheckMenuItem limitWidthItem;
-    private CheckMenuItem fullScreenItem;
+    private MenuItem fullScreenItem;
 
     // TODO: use StringBuffer instead?
     private StringBuilder primaryStringBuilder;
@@ -66,6 +71,11 @@ public class Main extends Application
 
     // Enforce generics on declaration and initialization?
     private EventHandler fileActionListener, optionsActionListener;
+
+    //GraphicsEnvironment e = GraphicsEnvironment.getLocalGraphicsEnvironment();
+    //Font[] allFonts = e.getAllFonts();
+
+    // Font defaultFont = Font.getDefault();
 
     public static void main(String[] args)
     {
@@ -123,9 +133,10 @@ public class Main extends Application
         helpMenu = new Menu("Help");
 
         newMenuItem = new MenuItem("New");
-        openMenuItem = new MenuItem("Open");
+        openMenuItem = new MenuItem("Open...");
         saveMenuItem = new MenuItem("Save");
-        saveAsMenuItem = new MenuItem("Save As");
+        saveAsMenuItem = new MenuItem("Save As...");
+        printMenuItem = new MenuItem("Print...");
 
         fileActionListener = new FileActionListener();
 
@@ -138,13 +149,19 @@ public class Main extends Application
 
         wrapTextItem = new CheckMenuItem("Wrap Text");
         limitWidthItem = new CheckMenuItem("Limit Width");
-        fullScreenItem = new CheckMenuItem("Full Screen");
+        fullScreenItem = new MenuItem("Full Screen");
 
         wrapTextItem.setSelected(true);
         limitWidthItem.setSelected(true);
-        fullScreenItem.setSelected(false);
 
-
+        fullScreenItem.setOnAction(new EventHandler<ActionEvent>()
+        {
+            @Override
+            public void handle(ActionEvent event)
+            {
+                primaryStage.setFullScreen(!primaryStage.isFullScreen());
+            }
+        });
 
         //wrapTextItem.setOnAction(optionsActionListener);
         //limitWidthItem.setOnAction(optionsActionListener);
@@ -154,7 +171,7 @@ public class Main extends Application
 
         //newMenuItem.setOnAction(actionEvent -> Platform.exit());
 
-        fileMenu.getItems().addAll(newMenuItem, openMenuItem, saveMenuItem, saveAsMenuItem);
+        fileMenu.getItems().addAll(newMenuItem, openMenuItem, saveMenuItem, saveAsMenuItem, printMenuItem);
 
         optionsMenu.getItems().addAll(wrapTextItem, limitWidthItem, fullScreenItem);
 
@@ -217,6 +234,8 @@ public class Main extends Application
         //primaryPane.setCenter(primaryTextArea);
         primaryPane.setCenter(primaryTextArea);
 
+        wrapTextItem.selectedProperty().bindBidirectional(primaryTextArea.wrapTextProperty());
+
         primaryTextArea.requestFocus();
 
         //MenuBar footer = new MenuBar();
@@ -278,6 +297,7 @@ public class Main extends Application
     }
 
 
+    /*
     private class OptionsActionListener implements EventHandler<ActionEvent>
     {
         @Override
@@ -290,12 +310,14 @@ public class Main extends Application
 
             System.err.println(actionCommand);
 
-            if(actionCommand.equals("Wrap Text"))
+            if(actionCommand.equals("Full Screen"))
             {
 
+                primaryStage.setMaximized(((CheckMenuItem)event.getSource()).selectedProperty().get());
             }
         }
     }
+    */
 
 
     private class FileActionListener implements EventHandler<ActionEvent>
@@ -312,7 +334,7 @@ public class Main extends Application
             {
 
             }
-            else if(actionCommand.equals("Open"))
+            else if(actionCommand.equals("Open..."))
             {
                 readFile(openFile());
                 clearPrimaryStringBuilder();
@@ -321,9 +343,13 @@ public class Main extends Application
             {
                 saveFile(fileSavePath);
             }
-            else if(actionCommand.equals("Save As"))
+            else if(actionCommand.equals("Save As..."))
             {
                 saveFile(selectSaveAsFile());
+            }
+            else if(actionCommand.equals("Print..."))
+            {
+
             }
             else
             {
@@ -338,6 +364,8 @@ public class Main extends Application
 
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Save File");
+        fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("Text File",".txt"), new FileChooser.ExtensionFilter("Java File", ".java"));
+        fileChooser.setSelectedExtensionFilter(new FileChooser.ExtensionFilter("Text File", ".txt"));
 
         if(fileSavePath != null)
         {
